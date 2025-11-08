@@ -4,15 +4,21 @@ import TaskList from './components/TaskList';
 import TaskSummary from './components/TaskSummary';
 import ProgressBar from './components/ProgressBar';
 import EmailSettings from './components/EmailSettings';
+import SubjectManager from './components/SubjectManager';
+import ChecklistManager from './components/ChecklistManager';
 import { format } from 'date-fns';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { useTasks } from './hooks/useTasks';
+import { useSubjects } from './hooks/useSubjects';
+import { useChecklists } from './hooks/useChecklists';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function App() {
   const { tasks, addTask, toggleTask, deleteTask, editTask } = useTasks();
+  const { subjects, addSubject, deleteSubject } = useSubjects();
+  const { checklists, addChecklist, deleteChecklist, editChecklist } = useChecklists();
   const [email, setEmail] = useLocalStorage('userEmail', '');
 
   const completedToday = tasks.filter(task => task.completed).length;
@@ -43,7 +49,19 @@ function App() {
         
         <div className="row">
           <div className="col-lg-6 mb-4">
-            <TaskForm onAddTask={addTask} />
+            <TaskForm onAddTask={addTask} subjects={subjects} />
+            <SubjectManager 
+              subjects={subjects}
+              onAddSubject={addSubject}
+              onDeleteSubject={deleteSubject}
+            />
+            <ChecklistManager 
+              checklists={checklists}
+              onAddChecklist={addChecklist}
+              onDeleteChecklist={deleteChecklist}
+              onEditChecklist={editChecklist}
+              onAddToTasks={addTask}
+            />
             <EmailSettings email={email} setEmail={setEmail} />
           </div>
           
@@ -52,7 +70,8 @@ function App() {
               tasks={tasks} 
               onToggleTask={toggleTask} 
               onDeleteTask={deleteTask}
-              onEditTask={editTask} 
+              onEditTask={editTask}
+              subjects={subjects} 
             />
           </div>
         </div>

@@ -20,13 +20,14 @@ export function useTasks() {
   }, [tasks]);
 
   const addTask = (taskData) => {
-    setTasks(prev => [...prev, {
-      id: Date.now(),
+    const newTask = {
+      id: Date.now() + Math.random(),
       ...taskData,
       completed: false,
       createdAt: new Date().toISOString(),
       lastCompleted: null
-    }]);
+    };
+    setTasks(prev => [...prev, newTask]);
   };
 
   const toggleTask = (id) => {
@@ -48,7 +49,7 @@ export function useTasks() {
   };
 
   const todayTasks = tasks.filter(task => 
-    task.type === 'daily' || (task.type === 'onetime' && !task.completed)
+    task.type === 'daily' || task.type === 'onetime'
   );
 
   return { tasks: todayTasks, addTask, toggleTask, deleteTask, editTask };

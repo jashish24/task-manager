@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaTasks } from 'react-icons/fa';
 import TaskItem from './TaskItem';
+import TaskFilter from './TaskFilter';
 
-function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
+function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask, subjects }) {
+  const [selectedSubject, setSelectedSubject] = useState('');
+  
+  const filteredTasks = selectedSubject 
+    ? tasks.filter(task => task.subjectId === selectedSubject)
+    : tasks;
   if (tasks.length === 0) {
     return (
       <div className="card">
@@ -18,17 +24,23 @@ function TaskList({ tasks, onToggleTask, onDeleteTask, onEditTask }) {
   return (
     <div className="card">
       <div className="card-header bg-success text-white">
-        <h5 className="mb-0">Today's Tasks ({tasks.length})</h5>
+        <h5 className="mb-0">Today's Tasks ({filteredTasks.length}{selectedSubject ? ` of ${tasks.length}` : ''})</h5>
       </div>
-      <div className="card-body p-0">
+      <div className="card-body">
+        <TaskFilter 
+          subjects={subjects}
+          selectedSubject={selectedSubject}
+          onSubjectChange={setSelectedSubject}
+        />
         <div className="list-group list-group-flush">
-          {tasks.map(task => (
+          {filteredTasks.map(task => (
             <TaskItem 
               key={task.id} 
               task={task} 
               onToggle={onToggleTask} 
               onDelete={onDeleteTask}
-              onEdit={onEditTask} 
+              onEdit={onEditTask}
+              subjects={subjects} 
             />
           ))}
         </div>

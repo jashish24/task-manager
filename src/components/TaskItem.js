@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaCheck, FaTrash, FaCalendarDay, FaClock, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 
-function TaskItem({ task, onToggle, onDelete, onEdit }) {
+function TaskItem({ task, onToggle, onDelete, onEdit, subjects }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
@@ -68,13 +68,18 @@ function TaskItem({ task, onToggle, onDelete, onEdit }) {
               {task.description}
             </p>
           )}
-          <div className="d-flex align-items-center">
-            <span className={`badge ${task.type === 'daily' ? 'bg-info' : 'bg-warning'} me-2`}>
+          <div className="d-flex align-items-center flex-wrap">
+            <span className={`badge ${task.type === 'daily' ? 'bg-info' : 'bg-warning'} me-2 mb-1`}>
               {task.type === 'daily' ? <FaCalendarDay className="me-1" /> : <FaClock className="me-1" />}
               {task.type === 'daily' ? 'Daily' : 'One-time'}
             </span>
+            {task.subjectId && (
+              <span className="badge bg-secondary me-2 mb-1">
+                {subjects.find(s => s.id === parseInt(task.subjectId))?.name || 'Unknown'}
+              </span>
+            )}
             {task.completed && (
-              <span className="badge bg-success">
+              <span className="badge bg-success mb-1">
                 <FaCheck className="me-1" />
                 Completed
               </span>

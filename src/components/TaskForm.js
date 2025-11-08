@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTasks } from 'react-icons/fa';
 
-function TaskForm({ onAddTask }) {
+function TaskForm({ onAddTask, subjects }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('daily');
+  const [subjectId, setSubjectId] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -13,11 +14,13 @@ function TaskForm({ onAddTask }) {
     onAddTask({
       title: title.trim(),
       description: description.trim(),
-      type
+      type,
+      subjectId: subjectId || null
     });
     
     setTitle('');
     setDescription('');
+    setSubjectId('');
   };
 
   return (
@@ -62,6 +65,22 @@ function TaskForm({ onAddTask }) {
             >
               <option value="daily">Daily Task</option>
               <option value="onetime">One-time Task</option>
+            </select>
+          </div>
+          
+          <div className="mb-3">
+            <label className="form-label">Subject (Optional)</label>
+            <select
+              className="form-select"
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+            >
+              <option value="">No Subject</option>
+              {subjects.map(subject => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name}
+                </option>
+              ))}
             </select>
           </div>
           
