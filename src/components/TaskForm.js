@@ -1,26 +1,38 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTasks } from 'react-icons/fa';
+import { useLoadingState, useNotifications } from '../hooks/useUI';
 
 function TaskForm({ onAddTask, subjects }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState('daily');
+  const [type, setType] = useState('onetime');
   const [subjectId, setSubjectId] = useState('');
 
-  const handleSubmit = (e) => {
+  const { isLoading, withLoading } = useLoadingState();
+  const { notify } = useNotifications();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      notify('error', 'Please enter a task title');
+      return;
+    }
     
-    onAddTask({
-      title: title.trim(),
-      description: description.trim(),
-      type,
-      subjectId: subjectId || null
+    const success = await withLoading(async () => {
+      await onAddTask({
+        title: title.trim(),
+        description: description.trim(),
+        type,
+        subjectId: subjectId || null
+      });
     });
     
-    setTitle('');
-    setDescription('');
-    setSubjectId('');
+    if (success) {
+      notify('success', 'Task added successfully');
+      setTitle('');
+      setDescription('');
+      setSubjectId('');
+    }
   };
 
   return (
@@ -63,8 +75,8 @@ function TaskForm({ onAddTask, subjects }) {
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option value="daily">Daily Task</option>
-              <option value="onetime">One-time Task</option>
+              <option value="onetime">One-time</option>
+              <option value="daily">Daily</option>
             </select>
           </div>
           
@@ -84,9 +96,24 @@ function TaskForm({ onAddTask, subjects }) {
             </select>
           </div>
           
-          <button type="submit" className="btn btn-primary w-100">
-            <FaPlus className="me-2" />
-            Add Task
+          <button 
+            type="submit" 
+            className="btn btn-primary w-100"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="d-flex align-items-center justify-content-center">
+                <div className="spinner-border spinner-border-sm me-2" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                Adding...
+              </div>
+            ) : (
+              <>
+                <FaPlus className="me-2" />
+                Add Task
+              </>
+            )}
           </button>
         </form>
       </div>

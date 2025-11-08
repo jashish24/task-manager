@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { FaCheck, FaTrash, FaCalendarDay, FaClock, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { useConfirmation, useNotifications } from '../hooks/useUI';
 
 function TaskItem({ task, onToggle, onDelete, onEdit, subjects }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
+  const { confirm } = useConfirmation();
+  const { notify } = useNotifications();
 
   const handleSave = () => {
     onEdit(task.id, { title: editTitle, description: editDescription });
@@ -97,7 +100,12 @@ function TaskItem({ task, onToggle, onDelete, onEdit, subjects }) {
           </button>
           <button
             className="btn btn-outline-danger btn-sm"
-            onClick={() => onDelete(task.id)}
+            onClick={async () => {
+              if (await confirm(`Are you sure you want to delete "${task.title}"?`)) {
+                onDelete(task.id);
+                notify('danger', `Task "${task.title}" has been deleted`);
+              }
+            }}
             title="Delete task"
           >
             <FaTrash />

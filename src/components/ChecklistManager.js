@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTrash, FaList, FaDownload, FaEye, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { useConfirmation, useNotifications } from '../hooks/useUI';
 
 function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEditChecklist, onAddToTasks }) {
   const [showForm, setShowForm] = useState(false);
   const [checklistName, setChecklistName] = useState('');
   const [tasks, setTasks] = useState(['']);
+  const { confirm } = useConfirmation();
+  const { notify } = useNotifications();
   const [viewingChecklist, setViewingChecklist] = useState(null);
   const [editingChecklist, setEditingChecklist] = useState(null);
   const [editName, setEditName] = useState('');
@@ -101,48 +104,63 @@ function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEdi
       </div>
       <div className="card-body p-3">
         {showForm && (
-          <form onSubmit={handleSubmit} className="mb-3 border p-3 rounded">
-            <div className="mb-2">
+          <form onSubmit={handleSubmit} className="mb-3 border p-3 rounded bg-light">
+            <div className="mb-3">
+              <label className="form-label fw-bold">Checklist Name</label>
               <input
                 type="text"
                 className="form-control form-control-sm"
                 value={checklistName}
                 onChange={(e) => setChecklistName(e.target.value)}
-                placeholder="Checklist name"
+                placeholder="Enter checklist name"
                 required
               />
             </div>
             
-            {tasks.map((task, index) => (
-              <div key={index} className="input-group input-group-sm mb-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={task}
-                  onChange={(e) => updateTask(index, e.target.value)}
-                  placeholder={`Task ${index + 1}`}
-                />
-                {tasks.length > 1 && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger"
-                    onClick={() => removeTask(index)}
-                  >
-                    <FaTrash />
-                  </button>
-                )}
+            <div className="mb-3">
+              <label className="form-label fw-bold d-flex justify-content-between align-items-center">
+                <span>Tasks</span>
+                <button 
+                  type="button" 
+                  className="btn btn-outline-secondary btn-sm" 
+                  onClick={addTaskField}
+                >
+                  <FaPlus className="me-1" /> Add Task
+                </button>
+              </label>
+              <div className="ms-2 border-start ps-3">
+                {tasks.map((task, index) => (
+                  <div key={index} className="input-group input-group-sm mb-2">
+                    <span className="input-group-text bg-white text-muted">
+                      {index + 1}
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={task}
+                      onChange={(e) => updateTask(index, e.target.value)}
+                      placeholder="Enter task description"
+                    />
+                    {tasks.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger"
+                        onClick={() => removeTask(index)}
+                      >
+                        <FaTrash />
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
             
-            <div className="d-flex gap-2">
-              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={addTaskField}>
-                <FaPlus /> Add Task
-              </button>
-              <button type="submit" className="btn btn-secondary btn-sm">
-                Save Checklist
-              </button>
+            <div className="d-flex gap-2 justify-content-end mt-4">
               <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setShowForm(false)}>
                 Cancel
+              </button>
+              <button type="submit" className="btn btn-primary btn-sm">
+                Save Checklist
               </button>
             </div>
           </form>
@@ -212,14 +230,24 @@ function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEdi
                       </button>
                       <button
                         className="btn btn-success btn-sm me-1"
-                        onClick={() => addChecklistToTasks(checklist)}
+                        onClick={async () => {
+                          if (await confirm(`Add all tasks from "${checklist.name}" to your task list?`)) {
+                            addChecklistToTasks(checklist);
+                            notify('success', `Added ${checklist.tasks.length} tasks from "${checklist.name}"`);
+                          }
+                        }}
                         title="Add to tasks"
                       >
                         <FaDownload />
                       </button>
                       <button
                         className="btn btn-outline-danger btn-sm"
-                        onClick={() => onDeleteChecklist(checklist.id)}
+                        onClick={async () => {
+                          if (await confirm(`Are you sure you want to delete checklist "${checklist.name}"?`)) {
+                            onDeleteChecklist(checklist.id);
+                            notify('danger', `Checklist "${checklist.name}" has been deleted`);
+                          }
+                        }}
                       >
                         <FaTrash />
                       </button>

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTrash, FaTag } from 'react-icons/fa';
+import { useConfirmation, useNotifications } from '../hooks/useUI';
 
 function SubjectManager({ subjects, onAddSubject, onDeleteSubject }) {
   const [newSubject, setNewSubject] = useState('');
+  const { confirm } = useConfirmation();
+  const { notify } = useNotifications();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -42,7 +45,12 @@ function SubjectManager({ subjects, onAddSubject, onDeleteSubject }) {
               <button
                 className="btn-close btn-close-white ms-2"
                 style={{ fontSize: '0.6em' }}
-                onClick={() => onDeleteSubject(subject.id)}
+                onClick={async () => {
+                  if (await confirm(`Are you sure you want to delete subject "${subject.name}"?`)) {
+                    onDeleteSubject(subject.id);
+                    notify('danger', `Subject "${subject.name}" has been deleted`);
+                  }
+                }}
               />
             </span>
           ))}

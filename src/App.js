@@ -12,7 +12,10 @@ import { useTasks } from './hooks/useTasks';
 import { useSubjects } from './hooks/useSubjects';
 import { useChecklists } from './hooks/useChecklists';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { ToastContainer, toast } from 'react-toastify';
+import { useLoadingState, useNotifications } from './hooks/useUI';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 function App() {
@@ -26,6 +29,14 @@ function App() {
 
   return (
     <div className="min-vh-100 bg-light">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+      />
       <header className="bg-primary text-white py-4 mb-4">
         <div className="container">
           <div className="text-center">

@@ -38,8 +38,15 @@ export function useTasks() {
     ));
   };
 
-  const deleteTask = (id) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+  const deleteTask = async (id) => {
+    try {
+      setTasks(prev => prev.filter(task => task.id !== id));
+      storage.saveTasks(tasks.filter(task => task.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      throw new Error('Failed to delete task. Please try again.');
+    }
   };
 
   const editTask = (id, updatedData) => {
