@@ -4,6 +4,15 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
+const webpush = require('web-push');
+
+// VAPID keys configuration
+const vapidKeys = webpush.generateVAPIDKeys();
+webpush.setVapidDetails(
+  'mailto:' + (process.env.EMAIL_USER || 'your-email@gmail.com'),
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 // Email configuration
-let transporter = nodemailer.createTransporter({
+let transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER || 'your-email@gmail.com',
@@ -31,8 +40,25 @@ function loadUserData() {
   } catch (error) {
     console.error('Error loading user data:', error);
   }
-  return { users: {} };
+  return { users: {}, pushSubscriptions: [] };
 }
+
+// Store push subscription
+app.post('/api/push-subscription', (req, res) => {
+  const subscription = req.body;
+  const userData = loadUserData();
+  
+  // Remove any existing subscription for this endpoint
+  userData.pushSubscriptions = userData.pushSubscriptions.filter(
+    sub => sub.endpoint !== subscription.endpoint
+  );
+  
+  // Add new subscription
+  userData.pushSubscriptions.push(subscription);
+  saveUserData(userData);
+  
+  res.json({ success: true });
+});
 
 function saveUserData(data) {
   try {
@@ -85,10 +111,26 @@ async function sendReminderEmail(email, pendingTasks) {
 }
 
 // Function to check and send reminders
-function checkAndSendReminders() {
+async function sendPushNotification(subscription, message) {
+  try {
+    await webpush.sendNotification(subscription, message);
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+    if (error.statusCode === 410) {
+      // Subscription has expired or is invalid
+      const userData = loadUserData();
+      userData.pushSubscriptions = userData.pushSubscriptions.filter(
+        sub => sub.endpoint !== subscription.endpoint
+      );
+      saveUserData(userData);
+    }
+  }
+}
+
+async function checkAndSendReminders() {
   const userData = loadUserData();
   
-  Object.values(userData.users).forEach(user => {
+  for (const user of Object.values(userData.users)) {
     const pendingTasks = user.tasks.filter(task => {
       if (task.type === 'onetime') {
         return !task.completed;
@@ -103,9 +145,22 @@ function checkAndSendReminders() {
     });
     
     if (pendingTasks.length > 0) {
-      sendReminderEmail(user.email, pendingTasks);
+      // Send email reminder
+      await sendReminderEmail(user.email, pendingTasks);
+      
+      // Send push notifications
+      const message = JSON.stringify({
+        title: 'Pending Tasks Reminder',
+        body: `You have ${pendingTasks.length} pending tasks to complete.`,
+        tasks: pendingTasks.map(task => task.title)
+      });
+      
+      // Send to all registered push subscriptions
+      for (const subscription of userData.pushSubscriptions) {
+        await sendPushNotification(subscription, message);
+      }
     }
-  });
+  }
 }
 
 // Schedule email reminders every 6 hours

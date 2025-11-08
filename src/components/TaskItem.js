@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { FaCheck, FaTrash, FaCalendarDay, FaClock, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaTrash, FaCalendarDay, FaClock, FaEdit, FaSave, FaTimes, FaFlag } from 'react-icons/fa';
 import { useConfirmation, useNotifications } from '../hooks/useUI';
+
+const PRIORITY_LEVELS = {
+  high: { label: 'High', color: 'danger' },
+  medium: { label: 'Medium', color: 'warning' },
+  low: { label: 'Low', color: 'success' }
+};
 
 function TaskItem({ task, onToggle, onDelete, onEdit, subjects }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -72,6 +78,12 @@ function TaskItem({ task, onToggle, onDelete, onEdit, subjects }) {
             </p>
           )}
           <div className="d-flex align-items-center flex-wrap">
+            {task.priority && (
+              <span className={`badge bg-${PRIORITY_LEVELS[task.priority]?.color || 'secondary'} me-2 mb-1`}>
+                <FaFlag className="me-1" />
+                {PRIORITY_LEVELS[task.priority]?.label || 'Priority'}
+              </span>
+            )}
             <span className={`badge ${task.type === 'daily' ? 'bg-info' : 'bg-warning'} me-2 mb-1`}>
               {task.type === 'daily' ? <FaCalendarDay className="me-1" /> : <FaClock className="me-1" />}
               {task.type === 'daily' ? 'Daily' : 'One-time'}

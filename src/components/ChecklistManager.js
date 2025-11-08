@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { FaPlus, FaTrash, FaList, FaDownload, FaEye, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import React, { useState, useMemo } from 'react';
+import { FaPlus, FaTrash, FaList, FaDownload, FaEye, FaEdit, FaSave, FaTimes, FaClipboard, 
+         FaHome, FaPlane, FaBriefcase } from 'react-icons/fa';
 import { useConfirmation, useNotifications } from '../hooks/useUI';
+import { templateChecklists, CATEGORY_ICONS } from '../utils/templateChecklists';
 
 function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEditChecklist, onAddToTasks }) {
   const [showForm, setShowForm] = useState(false);
@@ -12,6 +14,14 @@ function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEdi
   const [editingChecklist, setEditingChecklist] = useState(null);
   const [editName, setEditName] = useState('');
   const [editTasks, setEditTasks] = useState([]);
+
+  const loadTemplate = (templateKey) => {
+    const template = templateChecklists[templateKey];
+    setChecklistName(template.name);
+    setTasks(template.tasks);
+    setShowForm(true);
+    notify('info', 'Template loaded - customize as needed');
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -103,6 +113,49 @@ function ChecklistManager({ checklists, onAddChecklist, onDeleteChecklist, onEdi
         </button>
       </div>
       <div className="card-body p-3">
+        {!showForm && (
+          <div className="mb-4">
+            <h6 className="mb-3">Templates:</h6>
+            <div className="row g-2">
+              {Object.entries(
+                Object.entries(templateChecklists).reduce((acc, [key, template]) => {
+                  if (!acc[template.category]) {
+                    acc[template.category] = [];
+                  }
+                  acc[template.category].push({ key, ...template });
+                  return acc;
+                }, {})
+              ).map(([category, templates]) => {
+                const Icon = {
+                  'FaHome': FaHome,
+                  'FaPlane': FaPlane,
+                  'FaBriefcase': FaBriefcase
+                }[CATEGORY_ICONS[category]] || FaClipboard;
+
+                return (
+                  <div key={category} className="col-md-6 col-lg-4">
+                    <h6 className="mb-2 text-muted">
+                      <Icon className="me-2" />
+                      {category}
+                    </h6>
+                    <div className="d-grid gap-2">
+                      {templates.map(template => (
+                        <button 
+                          key={template.key}
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => loadTemplate(template.key)}
+                        >
+                          <FaClipboard className="me-1" /> {template.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-3 border p-3 rounded bg-light">
             <div className="mb-3">

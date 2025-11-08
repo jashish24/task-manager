@@ -4,6 +4,7 @@ import TaskList from './components/TaskList';
 import TaskSummary from './components/TaskSummary';
 import ProgressBar from './components/ProgressBar';
 import EmailSettings from './components/EmailSettings';
+import NotificationConsent from './components/NotificationConsent';
 import SubjectManager from './components/SubjectManager';
 import ChecklistManager from './components/ChecklistManager';
 import { format } from 'date-fns';
@@ -48,6 +49,10 @@ function App() {
           </div>
         </div>
       </header>
+      
+      <div className="container mb-3">
+        <NotificationConsent />
+      </div>
       
       <main className="container pb-5">
         <div className="row mb-4">

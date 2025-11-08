@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { FaPlus, FaTasks } from 'react-icons/fa';
 import { useLoadingState, useNotifications } from '../hooks/useUI';
 
+const PRIORITY_LEVELS = {
+  high: { label: 'High', color: 'danger' },
+  medium: { label: 'Medium', color: 'warning' },
+  low: { label: 'Low', color: 'success' }
+};
+
 function TaskForm({ onAddTask, subjects }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('onetime');
+  const [priority, setPriority] = useState('medium');
   const [subjectId, setSubjectId] = useState('');
 
   const { isLoading, withLoading } = useLoadingState();
@@ -23,6 +30,7 @@ function TaskForm({ onAddTask, subjects }) {
         title: title.trim(),
         description: description.trim(),
         type,
+        priority,
         subjectId: subjectId || null
       });
     });
@@ -68,6 +76,21 @@ function TaskForm({ onAddTask, subjects }) {
             />
           </div>
           
+          <div className="mb-3">
+            <label className="form-label">Priority</label>
+            <select
+              className="form-select"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              {Object.entries(PRIORITY_LEVELS).map(([value, { label }]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="mb-3">
             <label className="form-label">Task Type</label>
             <select
