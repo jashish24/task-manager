@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaPlus, FaTrash, FaTag } from 'react-icons/fa';
+import { FaPlus, FaTag } from 'react-icons/fa';
 import { useConfirmation, useNotifications } from '../hooks/useUI';
 
 function SubjectManager({ subjects, onAddSubject, onDeleteSubject }) {
