@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
@@ -21,14 +21,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Email configuration
-let transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password'
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Store user data (in production, use a proper database)
 const dataFile = path.join(__dirname, 'userData.json');
@@ -96,15 +89,13 @@ async function sendReminderEmail(email, pendingTasks) {
     `• ${task.title} (${task.type})`
   ).join('\n');
   
-  const mailOptions = {
-    from: process.env.EMAIL_USER || 'your-email@gmail.com',
-    to: email,
-    subject: `Task Reminder - ${pendingTasks.length} Pending Tasks`,
-    text: `Hello!\n\nYou have ${pendingTasks.length} pending tasks:\n\n${taskList}\n\nDon't forget to complete them!\n\nBest regards,\nTask Manager`
-  };
-  
   try {
-    await transporter.sendMail(mailOptions);
+    await resend.emails.send({
+      from: 'Task Manager <onboarding@resend.dev>',
+      to: email,
+      subject: `Task Reminder - ${pendingTasks.length} Pending Tasks`,
+      text: `Hello!\n\nYou have ${pendingTasks.length} pending tasks:\n\n${taskList}\n\nDon't forget to complete them!\n\nBest regards,\nTask Manager`
+    });
     console.log(`Reminder email sent to ${email}`);
   } catch (error) {
     console.error(`Error sending email to ${email}:`, error);
