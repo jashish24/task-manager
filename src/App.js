@@ -14,6 +14,7 @@ import { useSubjects } from './hooks/useSubjects';
 import { useChecklists } from './hooks/useChecklists';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { ToastContainer } from 'react-toastify';
+import { config } from './config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
@@ -23,6 +24,15 @@ function App() {
   const { subjects, addSubject, deleteSubject } = useSubjects();
   const { checklists, addChecklist, deleteChecklist, editChecklist } = useChecklists();
   const [email, setEmail] = useLocalStorage('userEmail', '');
+
+  const handleSetEmail = (newEmail) => {
+    setEmail(newEmail);
+    fetch(`${config.apiUrl}/api/user-data`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: newEmail, tasks })
+    }).catch(err => console.error('Failed to sync email:', err));
+  };
 
   const completedToday = tasks.filter(task => task.completed).length;
   const progress = tasks.length > 0 ? (completedToday / tasks.length) * 100 : 0;
@@ -77,7 +87,7 @@ function App() {
               onEditChecklist={editChecklist}
               onAddToTasks={addTask}
             />
-            <EmailSettings email={email} setEmail={setEmail} />
+            <EmailSettings email={email} setEmail={handleSetEmail} />
           </div>
           
           <div className="col-lg-6">
