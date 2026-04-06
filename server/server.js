@@ -7,11 +7,12 @@ const path = require('path');
 const webpush = require('web-push');
 
 // VAPID keys configuration
-const vapidKeys = webpush.generateVAPIDKeys();
+// Generate once with: node -e "const wp=require('web-push'); const k=wp.generateVAPIDKeys(); console.log(k);"
+// Then set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY as environment variables
 webpush.setVapidDetails(
   'mailto:' + (process.env.EMAIL_USER || 'your-email@gmail.com'),
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
 );
 
 const app = express();
